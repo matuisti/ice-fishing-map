@@ -1,0 +1,33 @@
+version: "3.7"
+
+volumes:
+  postgis-data:
+
+services:
+  ice-fishing-map-db:
+    container_name: ice-fishing-map-database
+    image: postgis/postgis:15-3.3
+    ports:
+      - "5432:5432"
+    env_file:
+      - database.env
+    volumes:
+      - "postgis-data:/var/lib/postgresql/data"
+
+  ice-fishing-map-server:
+    container_name: ice-fishing-map-server
+    image: node:alpine
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    volumes:
+      - ./:/usr/src/app
+      - ./nodemon.json:/usr/src/app/nodemon.json
+    working_dir: /usr/src/app
+    ports:
+      - 8080:8080
+    depends_on:
+      - ice-fishing-map-db
+    command: npx nodemon
